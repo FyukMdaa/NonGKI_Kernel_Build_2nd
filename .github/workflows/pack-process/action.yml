@@ -26,6 +26,12 @@ runs:
 
           fi
 
+          # veux.dtb (SoC DTB) を配置
+          if [[ -f "$IMAGE_DIR/dts/vendor/xiaomi/veux.dtb" ]]; then
+            cp -fp "$IMAGE_DIR/dts/vendor/xiaomi/veux.dtb" tmp/dtb
+            echo "Found veux.dtb!"
+          fi
+
           if [[ -f "$IMAGE_DIR/Image.gz-dtb" ]]; then
             cp -fp $IMAGE_DIR/Image.gz-dtb tmp
             echo "Found Image.gz-dtb !"
@@ -47,6 +53,13 @@ runs:
           else
             echo "[-] Could not found dtbo.img! Your device maybe needn't the file."
 
+          fi
+
+
+          # veux-overlay.dtbo を dtbo.img に変換して配置
+          if [[ -f "$IMAGE_DIR/dts/vendor/xiaomi/veux-overlay.dtbo" ]]; then
+            mkdtboimg create tmp/dtbo.img "$IMAGE_DIR/dts/vendor/xiaomi/veux-overlay.dtbo"
+            echo "Generated dtbo.img from veux-overlay.dtbo!"
           fi
 
           if [[ -f "$IMAGE_DIR/dtb.img" ]]; then
