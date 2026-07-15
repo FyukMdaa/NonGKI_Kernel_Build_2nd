@@ -59,9 +59,7 @@ runs:
           # veux-overlay.dtbo を dtbo.img に変換して配置
           if [[ -f "$IMAGE_DIR/dts/vendor/xiaomi/veux-overlay.dtbo" ]]; then
             if ! command -v mkdtboimg &> /dev/null; then
-              curl -sSL -o /tmp/mkdtboimg.py \
-                "https://android.googlesource.com/platform/system/libufdt/+/refs/heads/main/utils/src/mkdtboimg.py?format=TEXT" \
-                | base64 -d > /tmp/mkdtboimg.py
+              curl -sSL "https://android.googlesource.com/platform/system/libufdt/+/refs/heads/main/utils/src/mkdtboimg.py?format=TEXT" | base64 -d > /tmp/mkdtboimg.py
               python3 /tmp/mkdtboimg.py create tmp/dtbo.img "$IMAGE_DIR/dts/vendor/xiaomi/veux-overlay.dtbo"
             else
               mkdtboimg create tmp/dtbo.img "$IMAGE_DIR/dts/vendor/xiaomi/veux-overlay.dtbo"
