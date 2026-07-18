@@ -9,7 +9,7 @@ env:
   DEVICE_NAME : "redmi_note_11_pro_5g"
   DEVICE_CODENAME : "veux"
 
-  CUSTOM_CMDS : "CLANG_TRIPLE=aarch64-linux-gnu-"
+  CUSTOM_CMDS : ""
   EXTRA_CMDS : "LD=ld.lld"
 
   KERNEL_SOURCE : "https://github.com/dereference23/kernel_xiaomi_sm6375.git"
