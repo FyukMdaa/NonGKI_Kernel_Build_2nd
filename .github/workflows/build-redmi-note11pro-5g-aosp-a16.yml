@@ -133,12 +133,14 @@ jobs:
         uses: ./.github/workflows/patch-baseband-guard
 
       - name: ❌ Set Swap
-        uses: thejerrybao/setup-swap-space@v1
-        with:
-            swap-space-path: /swapfile
-            swap-size-gb: 16
-            remove-existing-swap-files: true
-
+        run: |
+          sudo swapoff -a 2>/dev/null || true
+          sudo rm -f /swapfile /mnt/swapfile
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
       - name: 🚀 Build Process
         uses: ./.github/workflows/build-process
 
