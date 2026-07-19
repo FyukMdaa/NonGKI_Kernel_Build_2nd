@@ -144,12 +144,12 @@ jobs:
       - name: Fix Stack Protector for Clang LTO
         run: |
           # defconfigからスタック保護を無効化
-          sed -i 's/CONFIG_STACKPROTECTOR=.*/# CONFIG_STACKPROTECTOR is not set/' ${{ github.workspace }}/kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          sed -i 's/CONFIG_STACKPROTECTOR_PER_TASK=.*/# CONFIG_STACKPROTECTOR_PER_TASK is not set/' ${{ github.workspace }}/kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+          sed -i 's/CONFIG_STACKPROTECTOR=.*/# CONFIG_STACKPROTECTOR is not set/' /kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+          sed -i 's/CONFIG_STACKPROTECTOR_PER_TASK=.*/# CONFIG_STACKPROTECTOR_PER_TASK is not set/' /kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
     
           # Makefileから-fstack-protector系フラグを除去
-          find ${{ github.workspace }}/kernel -name "Makefile" -exec sed -i 's/-fstack-protector-strong/-fno-stack-protector/g' {} \;
-          find ${{ github.workspace }}/kernel -name "Makefile" -exec sed -i 's/-fstack-protector/-fno-stack-protector/g' {} \;
+          find /kernel -name "Makefile" -exec sed -i 's/-fstack-protector-strong/-fno-stack-protector/g' {} \;
+          find /kernel -name "Makefile" -exec sed -i 's/-fstack-protector/-fno-stack-protector/g' {} \;
       - name: 🚀 Build Process
         uses: ./.github/workflows/build-process
 
