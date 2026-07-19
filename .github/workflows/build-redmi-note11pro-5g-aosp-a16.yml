@@ -141,15 +141,25 @@ jobs:
           sudo mkswap /swapfile
           sudo swapon /swapfile
           free -h
-      - name: Fix Stack Protector for Clang LTO
-        run: |
+            - name: Fix Stack Protector for Clang LTO
+      - run: |
+          # 実際のカーネルソースパスを指定
+          KPATH="$GITHUB_WORKSPACE/device_kernel"
+          DEFCONFIG_FILE="$KPATH/arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEFCONFIG_NAME }}"
+
           # defconfigからスタック保護を無効化
-          sed -i 's/CONFIG_STACKPROTECTOR=.*/# CONFIG_STACKPROTECTOR is not set/' /kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          sed -i 's/CONFIG_STACKPROTECTOR_PER_TASK=.*/# CONFIG_STACKPROTECTOR_PER_TASK is not set/' /kernel/arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+          if [ -f "$DEFCONFIG_FILE" ]; then
+            echo "Disabling stack protector in $DEFCONFIG_FILE"
+            sed -i 's/CONFIG_STACKPROTECTOR=.*/# CONFIG_STACKPROTECTOR is not set/' "$DEFCONFIG_FILE"
+            sed -i 's/CONFIG_STACKPROTECTOR_PER_TASK=.*/# CONFIG_STACKPROTECTOR_PER_TASK is not set/' "$DEFCONFIG_FILE"
+          else
+            echo "::error::defconfig not found at $DEFCONFIG_FILE"
+            exit 1
+          fi
     
           # Makefileから-fstack-protector系フラグを除去
-          find /kernel -name "Makefile" -exec sed -i 's/-fstack-protector-strong/-fno-stack-protector/g' {} \;
-          find /kernel -name "Makefile" -exec sed -i 's/-fstack-protector/-fno-stack-protector/g' {} \;
+          find "$KPATH" -name "Makefile" -exec sed -i 's/-fstack-protector-strong/-fno-stack-protector/g' {} \;
+          find "$KPATH" -name "Makefile" -exec sed -i 's/-fstack-protector/-fno-stack-protector/g' {} \;
       - name: 🚀 Build Process
         uses: ./.github/workflows/build-process
 
