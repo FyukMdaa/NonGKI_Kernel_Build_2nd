@@ -141,8 +141,9 @@ jobs:
           sudo mkswap /swapfile
           sudo swapon /swapfile
           free -h
-            - name: Fix Stack Protector for Clang LTO
-      - run: |
+          
+      - name: Fix Stack Protector for Clang LTO
+        run: |
           # 実際のカーネルソースパスを指定
           KPATH="$GITHUB_WORKSPACE/device_kernel"
           DEFCONFIG_FILE="$KPATH/arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEFCONFIG_NAME }}"
@@ -160,6 +161,7 @@ jobs:
           # Makefileから-fstack-protector系フラグを除去
           find "$KPATH" -name "Makefile" -exec sed -i 's/-fstack-protector-strong/-fno-stack-protector/g' {} \;
           find "$KPATH" -name "Makefile" -exec sed -i 's/-fstack-protector/-fno-stack-protector/g' {} \;
+          
       - name: 🚀 Build Process
         uses: ./.github/workflows/build-process
 
