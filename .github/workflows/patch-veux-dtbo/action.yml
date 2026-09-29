@@ -1,41 +1,37 @@
-name: 'Package DTBO for Xiaomi veux.'
+name: 'Prepare veux DTBO'
 
-description: 'Generate dtbo.img from veux-overlay.dtbo without modifying the upstream build/pack actions.'
+description: 'Builds the veux overlay DTBO image without modifying the upstream pack process.'
 
 runs:
   using: 'composite'
   steps:
-    - name: Generate veux dtbo.img
+    - name: Build dtbo.img from veux-overlay.dtbo
       shell: bash
       run: |
         set -euo pipefail
 
-        KERNEL_OUT="$GITHUB_WORKSPACE/device_kernel/out/arch/${{ env.KERNEL_ARCH }}/boot"
-        DTBO_SOURCE="$KERNEL_OUT/dts/vendor/xiaomi/veux-overlay.dtbo"
-        DTBO_IMAGE="$KERNEL_OUT/dtbo.img"
+        KPATH="$GITHUB_WORKSPACE/device_kernel"
+        IMAGE_DIR="$KPATH/out/arch/${{ env.KERNEL_ARCH }}/boot"
+        DTBO="$(find "$KPATH" -type f -name 'veux-overlay.dtbo' -print -quit)"
 
-        if [[ ! -f "$DTBO_SOURCE" ]]; then
-          echo "[-] veux-overlay.dtbo not found: $DTBO_SOURCE"
-          echo "[i] Available DTBO files:"
-          find "$KERNEL_OUT/dts" -type f -name '*.dtbo' -print 2>/dev/null || true
+        if [[ -z "$DTBO" ]]; then
+          echo "::error::Expected veux-overlay.dtbo was not found under $KPATH"
+          echo "[+] Available DTBO files:"
+          find "$KPATH" -type f -name '*.dtbo' -print | sort || true
           exit 1
         fi
 
+        mkdir -p "$IMAGE_DIR"
+
         if command -v mkdtboimg >/dev/null 2>&1; then
-          MKDTBOIMG="$(command -v mkdtboimg)"
+          MKDTBOIMG=(mkdtboimg)
         else
-          echo "[+] mkdtboimg not found; downloading Android libufdt tool..."
-          TMP_DIR="$(mktemp -d)"
-          trap 'rm -rf "$TMP_DIR"' EXIT
-          curl -fsSL 'https://android.googlesource.com/platform/system/libufdt/+archive/master/utils.tar.gz' \
-            -o "$TMP_DIR/utils.tar.gz"
-          tar -xzf "$TMP_DIR/utils.tar.gz" -C "$TMP_DIR"
-          MKDTBOIMG="$TMP_DIR/src/mkdtboimg.py"
-          chmod +x "$MKDTBOIMG"
+          echo "[+] mkdtboimg is not installed; downloading the upstream helper"
+          curl -fsSL 'https://android.googlesource.com/platform/system/libufdt/+/refs/heads/main/utils/src/mkdtboimg.py?format=TEXT' \
+            | base64 -d > /tmp/mkdtboimg.py
+          chmod +x /tmp/mkdtboimg.py
+          MKDTBOIMG=(python3 /tmp/mkdtboimg.py)
         fi
 
-        echo "[+] Creating dtbo.img from veux-overlay.dtbo"
-        python3 "$MKDTBOIMG" create "$DTBO_IMAGE" "$DTBO_SOURCE"
-
-        test -s "$DTBO_IMAGE"
-        echo "[+] Generated: $DTBO_IMAGE"
+        "${MKDTBOIMG[@]}" create "$IMAGE_DIR/dtbo.img" "$DTBO"
+        echo "[+] Generated $IMAGE_DIR/dtbo.img from $DTBO"

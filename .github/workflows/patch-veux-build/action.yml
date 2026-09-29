@@ -1,0 +1,26 @@
+name: 'Apply veux build compatibility fixes'
+
+description: 'Applies the veux-specific compatibility fix required by the clang 16 LTO toolchain.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Disable incompatible stack protector settings
+      shell: bash
+      run: |
+        set -euo pipefail
+        KPATH="$GITHUB_WORKSPACE/device_kernel"
+        DEFCONFIG_FILE="$KPATH/arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEFCONFIG_NAME }}"
+
+        if [[ ! -f "$DEFCONFIG_FILE" ]]; then
+          echo "::error::defconfig not found at $DEFCONFIG_FILE"
+          exit 1
+        fi
+
+        echo "[+] Applying veux clang/LTO compatibility fix"
+        sed -i 's/^CONFIG_STACKPROTECTOR=.*/# CONFIG_STACKPROTECTOR is not set/' "$DEFCONFIG_FILE"
+        sed -i 's/^CONFIG_STACKPROTECTOR_PER_TASK=.*/# CONFIG_STACKPROTECTOR_PER_TASK is not set/' "$DEFCONFIG_FILE"
+
+        find "$KPATH" -name Makefile -type f -print0 | while IFS= read -r -d '' makefile; do
+          sed -i 's/-fstack-protector-strong/-fno-stack-protector/g; s/-fstack-protector/-fno-stack-protector/g' "$makefile"
+        done

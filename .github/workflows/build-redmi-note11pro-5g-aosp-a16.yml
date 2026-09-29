@@ -15,8 +15,8 @@ env:
   KERNEL_SOURCE : "https://github.com/dereference23/kernel_xiaomi_sm6375.git"
   KERNEL_BRANCH : "main"
 
-  CLANG_SOURCE : "https://github.com/LineageOS/android_prebuilts_clang_kernel_linux-x86_clang-r416183b.git"
-  CLANG_BRANCH : "lineage-20.0"
+  CLANG_SOURCE : "https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r596125.git"
+  CLANG_BRANCH : "16.0"
 
   GCC_GNU : false
   GCC_64_SOURCE : "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git"
@@ -90,7 +90,7 @@ env:
 jobs:
   build-kernel:
     name: Xiaomi Redmi Note 11 Pro 5G (AOSP Based A16)
-    runs-on: ubuntu-24.04 # u can changed to ubuntu 22.04, and need container set ubuntu-24.04
+    runs-on: ubuntu-22.04 # veux requires the clang 16 / Ubuntu 22.04 build environment
     # container: archlinux/archlinux:latest # if u need use arch linux -> archlinux/archlinux:latest or ubuntu 20.04 -> ubuntu:focal
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -134,15 +134,16 @@ jobs:
       - name: 🛡️ Patch Kernel of NoMount
         uses: ./.github/workflows/patch-nomount
 
+      - name: 🧩 Apply veux build compatibility
+        uses: ./.github/workflows/patch-veux-build
+
       - name: ❌ Set Swap
-        uses: pierotofy/set-swap-space@master
-        with:
-          swap-size-gb: 16
+        uses: ./.github/workflows/patch-veux-swap
 
       - name: 🚀 Build Process
         uses: ./.github/workflows/build-process
 
-      - name: 📦 Generate veux DTBO
+      - name: 🧱 Prepare veux DTBO
         uses: ./.github/workflows/patch-veux-dtbo
 
       - name: 🔩 Pack Process

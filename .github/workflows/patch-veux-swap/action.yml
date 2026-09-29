@@ -1,0 +1,18 @@
+name: 'Set swap for veux build'
+
+description: 'Creates the swap space used by the veux kernel build.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create 16G swap
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo swapoff -a 2>/dev/null || true
+        sudo rm -f /swapfile /mnt/swapfile
+        sudo fallocate -l 16G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        free -h
