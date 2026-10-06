@@ -170,11 +170,7 @@ runs:
                 KERNELSU_AUTHOR="BakaSU"
                 KERNELSU_NAME="BakaSU"
                 KERNELSU_ORIGIN_BRANCH="main"
-                if [[ "${{ env.SUSFS_ENABLE }}" == "true" ]]; then
-                    KERNELSU_BRANCH="main"
-                else
-                    KERNELSU_BRANCH="main"
-                fi
+                KERNELSU_BRANCH="main"
 
             else
                 echo "[-] Please input vaild fork name!"
